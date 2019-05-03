@@ -2,7 +2,7 @@
 title: "Class09 Interactive Session: Unsupervised Learning Analysis of Human Breast Cancer Cells"
 author: "Madeline R. Luth"
 date: "5/1/2019"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
