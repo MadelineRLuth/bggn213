@@ -1,0 +1,109 @@
+---
+title: 'Class 06: R Functions'
+author: "Madeline R. Luth"
+date: "4/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Overview
+Today we will focus on **R** functions but we will start with some **file reading**.
+
+```{r}
+plot(1:10, type = "l", col = "blue")
+```
+```{r}
+read.table("test1.txt", header = TRUE, sep = ",")
+```
+
+Read in first file which is delimited by ","
+```{r}
+read.table("test2.txt", header = TRUE, sep = "$")
+```
+Read in second file which is delimited by "$"
+```{r}
+read.table("test3.txt")
+```
+Read in final file which has spaces and tabs
+
+Note: Option + Command + i is shortcut to insert a new R chunk
+```{r}
+read.csv("https://bioboot.github.io/bggn213_W19/class-material/test2.txt")
+```
+Can also read.csv from a web domain instead of downloading file to the working directory
+
+##  Our first function
+
+Add some numbers
+```{r}
+add <- function(x, y=1) {
+  #The body of the function
+  x + y
+}
+```
+```{r}
+add(4)
+```
+```{r}
+add(4,5)
+```
+Adding the 5 for y will override the default argument of y=1
+```{r}
+add(c(1,3,5), 1)
+```
+```{r}
+#add(1,3,5)
+#returns error of unused argument
+```
+```{r}
+#add(x=1, y="barry")
+#error because second value is non-numeric
+```
+```{r}
+rescale <- function(x) {
+   rng <-range(x)
+   (x - rng[1]) / (rng[2] - rng[1])
+}
+```
+```{r}
+rescale( 1:10 )
+```
+```{r}
+rescale( c(1,3,NA, 5, 10) )
+```
+```{r}
+rescale2 <- function(x, na.rm=TRUE) {
+  rng <- range(x, na.rm=na.rm)
+  (x - rng[1]) / (rng[2] - rng[1])
+}
+```
+```{r}
+rescale2( c(1,3,NA, 10))
+```
+```{r}
+rescale3 <- function(x, na.rm=TRUE, plot=FALSE) {
+   if(na.rm) {
+     rng <-range(x, na.rm=na.rm)
+   } else {
+     rng <-range(x)
+   }
+   print("Hello")
+   answer <- (x - rng[1]) / (rng[2] - rng[1])
+   print("is it me you are looking for?")
+   if(plot) {
+      plot(answer, typ="b", lwd=4)
+}
+   print("I can see it in ...")
+}
+```
+This is another example
+```{r}
+rescale3( 1:10 )
+```
+```{r}
+rescale3( 1:10, plot = TRUE)
+```
+
