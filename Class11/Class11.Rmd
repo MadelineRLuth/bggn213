@@ -1,0 +1,212 @@
+---
+title: "Class 11: Structural Bioinformatics (Part 1)"
+author: "Madeline R. Luth"
+date: "5/8/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Instructions for this exercise can be found at https://bioboot.github.io/bggn213_S19/class-material/lab-11-bggn213.pdf
+
+## Revisit the PDB
+
+The PDB archive is the major repository of information about the 3D structures of large biological molecules, including proteins and nucleic acids. Understanding the shape of these molecules helps to understand how they work. This knowledge can be used to help deduce a structure's role in human health and disease, and in drug development. The structures in the PDB range from tiny proteins and bits of DNA or RNA to complex molecular machines like the ribosome composed of many chains of protein and RNA.
+
+Q1: Download a CSV file from the PDB site (accessible from “Analyze” -> “PDB Statistics” > “by Experimental Method and Molecular Type”. Move this CSV file into your RStudio project and determine the percentage of structures solved by X-Ray and Electron Microscopy. Also can you determine what proportion of structures are protein?
+
+Downloaded a CSV file from http://www.rcsb.org/stats/summary on 5/8
+
+```{r}
+db <- read.csv("Data_Export_Summary.csv", row.names = 1)
+```
+
+```{r}
+# total number of structures in PDB
+sum(db$Total)
+
+
+rowSums(db[,1:4])
+```
+
+```{r}
+# Percent of each experiment type
+(rowSums(db[,1:4])/sum(db$Total)) * 100
+```
+
+What percent are proteins?
+
+```{r}
+(sum(db$Proteins)/sum(db$Total)) * 100
+```
+
+Q2: Type HIV in the PDB website search box on the home page and determine how many HIV-1 protease structures are in the current PDB?
+
+There are 1157 structures currently.
+
+
+## Visualizing the HIV-1 protease structure
+
+Downloaded the PDB file for 1HSG, a 2Å resolution X-ray crystal structure of HIV-1 protease with a bound drug molecule indinavir. 
+
+The HIV-1 protease [1] is an enzyme that is vital for the replication of HIV. It cleaves newly formed polypeptide chains at appropriate locations so that they form functional proteins. Hence, drugs that target this protein could be vital for suppressing viral replication. A handful of drugs - called HIV-1 protease inhibitors (saquinavir, ritonavir, indinavir, nelfinavir, etc.) [2] - are currently commercially available that inhibit the function of this protein, by binding in the catalytic site that typically binds the polypeptide.
+
+## Introduction to Bio3D in R
+
+Bio3D1 is an R package for structural bioinformatics. Features include the ability to read, write and analyze biomolecular structure, sequence and dynamic trajectory data.
+
+```{r}
+library(bio3d)
+```
+
+```{r}
+# read in the same pdb file from before
+pdb <- read.pdb("1hsg.pdb")
+pdb
+```
+
+ Q6. How many amino acid residues are there in this pdb object and what are the two non- protein residues?
+ 
+198
+ 
+ 
+```{r}
+aa321(pdb$seqres)
+```
+
+```{r}
+pdb$atom
+```
+
+
+
+## Atom Selection examples
+
+```{r}
+inds <- atom.select(pdb, resno=10)
+inds
+
+pdb$atom[inds$atom,]
+```
+
+```{r}
+atom.select(pdb, resno=10, value=TRUE)
+```
+
+
+```{r}
+# Select all C-alpha atoms (return their indices)
+ca.inds <- atom.select(pdb, "calpha")
+ca.inds
+```
+
+## Make a proteinonly and ligand-only PDB file
+
+Select the protein with 'atom.select()' then use 'write.pdb'
+
+```{r}
+
+prot <- atom.select(pdb, "protein", value=TRUE)
+prot
+```
+
+```{r}
+write.pdb(prot, file = "1hsg_protein.pdb")
+```
+
+
+```{r}
+lig <- atom.select(pdb, "ligand", value=TRUE)
+lig
+```
+
+```{r}
+write.pdb(lig, file="1hsg_ligand.pdb")
+```
+
+
+```{r}
+# need to download
+library(bio3d.view)
+view(lig)
+```
+
+## Working with multiple PDB files
+
+```{r}
+# Download some example PDB files
+ids <- c("1TND_B","1AGR_A","1TAG_A","1GG2_A","1KJY_A","4G5Q_A")
+files <- get.pdb(ids, split = TRUE)
+```
+
+```{r}
+# Extract and align the chains we are interested in
+pdbs <- pdbaln(files, fit = TRUE)
+#basename.pdb(pdbs$id)
+# Print to screen a summary of the 'pdbs' object
+pdbs
+```
+
+
+Q8: What effect does setting the fit=TRUE option have in the related rmsd() function? What does RMSD measure and what would the results indicate if you set fit=FALSE or removed this option? 
+
+fit: logical, if TRUE coordinate superposition is performed prior to RMSD calculation.
+
+The root-mean-square deviation of atomic positions (or simply root-mean-square deviation, RMSD) is the measure of the average distance between the atoms (usually the backbone atoms) of superimposed proteins.
+
+```{r}
+# Access the first 5 rows, and 8 columns 
+pdbs$ali[1:5, 1:8]
+```
+
+```{r}
+# Associated residues numbers
+pdbs$resno[1:5, 1:8]
+```
+
+Below we calculate the pairwise sequence identity between the structures of the pdbs ensemble followed by the root mean square deviation (RMSD):
+
+```{r}
+# Calculate sequence identity
+seqidentity(pdbs)
+```
+
+```{r}
+# Calculate RMSD
+rmsd(pdbs)
+```
+
+```{r}
+# Calculate RMSD
+rd <- rmsd(pdbs)
+
+# Clustering
+hc <- hclust(as.dist(rd))
+grps <- cutree(hc, k=3)
+
+# Plot results as dendrogram
+hclustplot(hc, k=3)
+```
+
+```{r}
+pc.xray <- pca(pdbs)
+plot(pc.xray)
+```
+
+```{r}
+ # Visualize first principal component
+pc1 <- mktrj(pc.xray, pc=1, file="pc_1.pdb")
+```
+
+```{r}
+# Structural displacements captured by PC1
+view(pc1)
+```
+
+
+
+
+
+
