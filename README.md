@@ -14,4 +14,8 @@ Class 8: Introduction to machine learning for Bioinformatics (Part 1)
 
 Class 9: Unsupervised learning mini-project
 
+Class 10: GitHub Tutorial (no module uploaded here)
+
+Class 11: Structural Bioinformatics (Part 1)
+
 
