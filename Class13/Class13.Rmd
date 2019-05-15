@@ -1,0 +1,108 @@
+---
+title: "Class 13: Genome Informatics"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+The purpose of this lab session is to introduce a set of tools used in high- throughput sequencing and the process of investigating interesting gene variance in Genomics. High-throughput sequencing is now routinely applied to gain insight into a wide range of important topics in biology and medicine.
+
+There are a number of gene variants associated with childhood asthma. A study from Verlaan et al. (2009) shows that 4 candidate SNPs demonstrate significant evidence for association.
+
+What are those 4 candidate SNPs?
+rs12936231, rs8067378, rs9303277, and rs7216389
+
+What three genes do these variants overlap or effect?
+ZPBP2, GSDMB, and ORMDL3
+
+What is the location of rs8067378 and what are the different alleles for rs8067378?
+Chromosome 17: 39895095 (forward strand) A/G variants (43% G)
+
+What proportion of the Mexican Ancestry in Los Angeles sample population (MXL) are homozygous for the asthma associated SNP (G|G)?
+
+```{r}
+mxl <- read.csv("373531-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+head(mxl)
+```
+
+
+```{r}
+table(mxl$Genotype..forward.strand.)
+```
+
+```{r}
+# proportion
+table(mxl$Genotype..forward.strand.)/nrow(mxl)
+```
+
+14 % of the individuals are homozygous for the G allele at this SNP locus.
+
+
+## Quality scores in fastq files
+
+```{r}
+library(seqinr)
+library(gtools)
+phred <- asc( s2c("DDDDCDEDCDDDDBBDDDCC@") ) - 33
+phred
+```
+
+Galaxy server IP: 149.165.171.141
+
+
+## Population Scale Analysis
+
+One sample is obviously not enough to know what is happening in a population. You are interested in assessing genetic differences on a population scale. So, you processed about ~230 samples and did the normalization on a genome level. Now, you want to find whether there is any association of the 4 asthma-associated SNPs (rs8067378...) on *ORMDL3* expression.
+
+
+```{r}
+population <- read.table("https://bioboot.github.io/bggn213_S19/class-material/rs8067378_ENSG00000172057.6.txt", header = TRUE)
+head(population)
+```
+
+Determine the sample size for each genotype and their corresponding median expression levels for each of these genotypes.
+
+```{r}
+table(population$geno)
+```
+
+```{r}
+summary(population)
+```
+
+```{r}
+# look at the summary statistics for G/G individuals only
+inds <- population$geno == "G/G"
+summary(population[inds,])
+```
+
+```{r}
+# look at the summary statistics for A/A individuals only
+inds2 <- population$geno == "A/A"
+summary(population[inds2,])
+```
+
+The median expression in A/A individuals is somewhat higher.
+
+```{r}
+# look at the summary statistics for A/G individuals only
+inds3 <- population$geno == "A/G"
+summary(population[inds3,])
+```
+
+A/G individuals seem to have an intermediate expression phenotype.
+
+Make a boxplot showing each of the three genotypes. 
+
+```{r}
+# y ~ grp
+boxplot(exp ~ geno, data = population, notch = TRUE)
+```
+
+
+
+
+
+
+
