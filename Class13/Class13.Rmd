@@ -6,6 +6,8 @@ output: github_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+Full Instructions found here: https://bioboot.github.io/bggn213_S19/class-material/lab-13-bggn213.pdf
+
 The purpose of this lab session is to introduce a set of tools used in high- throughput sequencing and the process of investigating interesting gene variance in Genomics. High-throughput sequencing is now routinely applied to gain insight into a wide range of important topics in biology and medicine.
 
 There are a number of gene variants associated with childhood asthma. A study from Verlaan et al. (2009) shows that 4 candidate SNPs demonstrate significant evidence for association.
