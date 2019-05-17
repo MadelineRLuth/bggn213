@@ -1,0 +1,375 @@
+---
+title: "Class 14: Transcriptomics and the analysis of RNA-Seq data"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The data for this hands-on session comes from a published RNA-seq experiment where airway smooth muscle cells were treated with dexamethasone, a synthetic glucocorticoid steroid with anti-inflammatory effects (Himes et al. 2014).
+
+Glucocorticoids are used, for example, by people with asthma to reduce inflammation of the airways. The anti-inflammatory effects on airway smooth muscle (ASM) cells has been known for some time but the underlying molecular mechanisms are unclear.
+
+Himes et al. used RNA-seq to profile gene expression changes in four different ASM cell lines treated with dexamethasone glucocorticoid. They found a number of differentially expressed genes comparing dexamethasone-treated to control cells, but focus much of the discussion on a gene called CRISPLD2. This gene encodes a secreted protein known to be involved in lung development, and SNPs in this gene in previous GWAS studies are associated with inhaled corticosteroid resistance and bronchodilator response in asthma patients. They confirmed the upregulated CRISPLD2 mRNA expression with qPCR and increased protein expression using Western blotting.
+
+In the experiment, four primary human ASM cell lines were treated with 1 micromolar dexamethasone for 18 hours. For each of the four cell lines, we have a treated and an untreated sample. They did their analysis using Tophat and Cufflinks similar to our last day's hands-on session. For a more detailed description of their analysis see the PubMed entry 24926665 and for raw data see the GEO entry GSE52778.
+
+In this session we will read and explore the gene expression data from this experiment using base R functions and then perform a detailed analysis with the DESeq2 package from Bioconductor.
+
+Full instructions available online here: https://bioboot.github.io/bggn213_S19/class-material/lab-14-bggn213.html
+
+```{r}
+# load the packages we need to use
+library(BiocManager)
+library(DESeq2)
+```
+
+countData and colData structure are very important to DESeq2 package; they must follow specific format in order to work properly
+
+```{r}
+# read in the data files
+counts <- read.csv("airway_scaledcounts.csv", stringsAsFactors = FALSE)
+metadata <-  read.csv("airway_metadata.csv", stringsAsFactors = FALSE)
+```
+
+```{r}
+# look at the data files
+head(counts)
+```
+
+```{r}
+head(metadata)
+```
+
+How many genes are in this dataset?
+
+```{r}
+# either method acceptable, nrow is easiest way
+summary(counts)
+nrow(counts)
+```
+
+Check if the columns of "counts" is the same as the id column in "metadata"
+
+```{r}
+colnames(counts)
+```
+
+```{r}
+metadata$id
+```
+
+```{r}
+# gives column names of everything except the first column
+# then check for equivalence with id in metadata
+# then use all command and it will say if they are all true
+all(colnames(counts)[-1] == metadata$id)
+```
+
+How many "control" cell lines do we have in this dataset?
+
+```{r}
+table(metadata$dex)
+```
+
+There are 4 control lines in the dataset and 4 treated lines.
+
+## Differential expression analysis by hand
+
+*Note: we will never actually do this for data analysis, but this is useful to understand how DESeq2 works*
+
+We need to pull out all of the control samples and all of the treated samples into their own tables.
+
+How do we make the code below more robust?
+
+```{r}
+# access the control counts data only to calculate an average counts value for each gene
+control <- metadata[metadata$dex=="control",]
+```
+
+Now get the cols in counts with these 'control$id' names
+
+```{r}
+# original code with '4' hard-coded
+# we could make this better so we don't have to change every time
+# control.mean <- rowSums( counts[ ,control$id] )/4
+control.mean <- rowSums( counts[ ,control$id] )/length(control$id)
+head(control.mean)
+```
+
+
+```{r}
+# add gene names from the counts
+names(control.mean) <- counts$ensgene
+head(control.mean)
+```
+
+Now we need to do the same for the treated samples.
+
+```{r}
+treated <- metadata[metadata$dex=="treated",]
+treated.mean <- rowSums( counts[ ,treated$id] )/length(treated$id)
+names(treated.mean) <- counts$ensgene
+head(treated.mean)
+
+```
+
+Create a data.frame with one column being the mean of controls and one column being the mean of the treated.
+
+```{r}
+meancounts <- data.frame(control.mean, treated.mean)
+head(meancounts)
+```
+
+Let's plot this treated vs. control. If the drug has no effect, the line will be straight on the diagonal.
+
+```{r}
+plot(meancounts[,1],meancounts[,2], xlab="Control", ylab="Treated")
+```
+
+We need to take the log of these expression values to get a more informative plot. Use the argument log="xy"
+
+```{r}
+plot(meancounts[,1],meancounts[,2], xlab="Control", ylab="Treated", log="xy")
+```
+
+Add a column for log2 fold change onto the data.frame.
+
+```{r}
+meancounts$log2fc <- log2(meancounts[,"treated.mean"]/meancounts[,"control.mean"])
+head(meancounts)
+```
+
+There are a couple of “weird” results. Namely, the NaN ("not a number") and -Inf (negative infinity) results.
+
+The NaN is returned when you divide by zero and try to take the log. The -Inf is returned when you try to take the log of zero. It turns out that there are a lot of genes with zero expression. Let’s filter our data to remove these genes.
+
+```{r}
+# ask which values in 1st and 2nd columns are equal to zero
+# will say which position(s) is/are true, in a vector format
+# add 'arr.ind=TRUE' so it treats it as array indices
+zero.vals <- which(meancounts[,1:2]==0, arr.ind=TRUE)
+
+# now finds the rows where the first column is equal to zero
+to.rm <- unique(zero.vals[,1])
+
+# creates new data.frame with the zero value genes removed
+mycounts <- meancounts[-to.rm,]
+head(mycounts)
+```
+
+A common threshold used for calling something differentially expressed is a log2(FoldChange) of greater than 2 or less than -2. Let’s filter the dataset both ways to see how many genes are up or down-regulated.
+
+```{r}
+# check which genes from the log2fc column are greater than 2 or less than -2 and assign them to a logical (T/F) vector
+up.ind <- mycounts$log2fc > 2
+down.ind <- mycounts$log2fc < (-2)
+summary(up.ind)
+summary(down.ind)
+```
+
+There are 250 genes that were upregulated (log2 fold change > 2).
+
+There are 367 genes that were downregulated (log2 fold change < -2)
+
+A total of 617 genes are dysregulated in the treated samples versus the control samples.
+
+## Add gene annotation data
+
+At the moment, we only have ENSEMBL IDs for each gene, which doesn't provide any useful biological insight. We want to merge this data with the counts data to see what types of genes were dysregulated.
+
+```{r}
+anno <- read.csv("annotables_grch38.csv")
+head(anno)
+```
+
+Use the **merge()** function to add annotation data to the 'mycounts' results.
+
+```{r}
+mycounts.anno <- merge(x=mycounts, y=anno, by.x="row.names", by.y="ensgene")
+head(mycounts.anno)
+```
+
+## Use Bioconductor package AnnotationDbi
+
+```{r}
+# load the packages
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+```
+
+This is the organism annotation package ("org") for Homo sapiens ("Hs"), organized as an AnnotationDbi database package ("db"), using Entrez Gene IDs ("eg") as primary key. To get a list of all available key types, use:
+
+```{r}
+columns(org.Hs.eg.db)
+```
+
+Add column "symbol"
+
+```{r}
+mycounts$symbol <- mapIds(org.Hs.eg.db,
+                     keys=row.names(mycounts), # Our genenames
+                     keytype="ENSEMBL",        # The format of our genenames
+                     column="SYMBOL",          # The new format we want to add
+                     multiVals="first")
+```
+
+Add column "entrez"
+
+```{r}
+mycounts$entrez <- mapIds(org.Hs.eg.db,
+                     keys=row.names(mycounts), # Our genenames
+                     keytype="ENSEMBL",        # The format of our genenames
+                     column="ENTREZID",          # The new format we want to add
+                     multiVals="first")
+```
+
+Add column "uniprot"
+
+```{r}
+mycounts$uniprot <- mapIds(org.Hs.eg.db,
+                     keys=row.names(mycounts), # Our genenames
+                     keytype="ENSEMBL",        # The format of our genenames
+                     column="UNIPROT",          # The new format we want to add
+                     multiVals="first")
+```
+
+
+Check 'mycounts' files to make sure the new columns were added properly.
+
+```{r}
+head(mycounts)
+```
+
+Inspect upregulated genes
+
+```{r}
+View( mycounts[up.ind,] )
+```
+
+Inspect downregulated genes
+
+```{r}
+View( mycounts[down.ind,] )
+```
+
+
+## DESeq2 Analysis
+
+DESeq2 is an R package for analyzing count-based NGS data like RNA-seq. It is available from Bioconductor. Bioconductor is a project to provide tools for analyzing high-throughput genomic data including RNA-seq, ChIP-seq and arrays.
+
+```{r}
+# load DESeq2 package
+library(DESeq2)
+citation("DESeq2")
+```
+
+You can construct a DESeqDataSet from (1) a count matrix, (2) a metadata file, and (3) a formula indicating the design of the experiment.
+
+We will use the DESeqDataSetFromMatrix() function to build the required DESeqDataSet object and call it dds, short for our DESeqDataSet.
+
+```{r}
+# build the DESeq dataset object
+dds <- DESeqDataSetFromMatrix(countData=counts, 
+                              colData=metadata, 
+                              design=~dex, 
+                              tidy=TRUE)
+dds
+```
+
+```{r}
+dds <- DESeq(dds)
+```
+
+Get the results
+
+```{r}
+res <- results(dds)
+as.data.frame(res)
+```
+
+```{r}
+summary(res)
+```
+
+
+```{r}
+# Apply more stringent cutoff for adjusted p-value.
+res05 <- results(dds, alpha =0.05)
+summary(res05)
+```
+
+Make a volcano plot by plotting log fold change on the x-axis and the p-value on the y-axis.
+
+```{r}
+plot( res$log2FoldChange,  -log(res$padj), 
+      xlab="Log2(FoldChange)",
+      ylab="-Log(P-value)")
+```
+
+Make the plot a little more informative by adding ablines at p-value of 0.05 and at log fold change of +/-2.
+
+```{r}
+plot( res$log2FoldChange,  -log(res$padj), 
+ ylab="-Log(P-value)", xlab="Log2(FoldChange)")
+
+# Add some cut-off lines
+abline(v=c(-2,2), col="darkgray", lty=2)
+abline(h=-log(0.05), col="darkgray", lty=2)
+```
+
+Add color to distinguish the upregulated and downreglated genes that also meet our significance cutoffs. Blue points satisfy both conditions (i.e. highly dysregulated and also make p-value cutoff) while red points are highly dysregulated but don't meet p-value significance threshold.
+
+```{r}
+# Setup our custom point color vector
+# repeat color gray for the number of rows of results
+mycols <- rep("gray", nrow(res))
+# then overwrite the grays for red points that have an absolute value log2fold change >2
+mycols[ abs(res$log2FoldChange) > 2 ]  <- "red" 
+
+#finally overwrite reds for blue points that reach a padj value < 0.05
+inds <- (res$padj < 0.05) & (abs(res$log2FoldChange) > 2 )
+mycols[ inds ] <- "blue"
+
+# Generate the volcano plot with custom colors 'mycols'
+plot( res$log2FoldChange,  -log(res$padj), 
+ col=mycols, ylab="-Log(P-value)", xlab="Log2(FoldChange)" )
+
+# Add the cut-off lines
+abline(v=c(-2,2), col="gray", lty=2)
+abline(h=-log(0.05), col="gray", lty=2)
+```
+
+## Visualization with EnhancedVolcano package
+
+```{r}
+library(EnhancedVolcano)
+```
+
+First we will add the more understandable gene symbol names to our full results object res as we will use this to label the most interesting genes in our final plot.
+
+```{r}
+x <- as.data.frame(res)
+x$symbol <- mapIds(org.Hs.eg.db, 
+                   keys=row.names(x),
+                   keytype="ENSEMBL",
+                   column="SYMBOL",
+                   multiVals="first")
+```
+
+```{r}
+# generate the plot
+EnhancedVolcano(x,
+    lab = x$symbol,
+    x = 'log2FoldChange',
+    y = 'pvalue')
+```
+
+The sessionInfo() prints version information about R and any attached packages. It's a good practice to always run this command at the end of an R session and record it for the sake of reproducibility in the future.
+
+```{r}
+sessionInfo()
+```
+
+
