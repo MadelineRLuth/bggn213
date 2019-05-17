@@ -18,6 +18,8 @@ Class 10: GitHub Tutorial (no module uploaded here)
 
 Class 11: Structural Bioinformatics (Part 1)
 
-Class 13: Genome Informatics
+Class 13: Genome Informatics (Part 1)
+
+Class14: Genome Informatics (Part 2)
 
 
