@@ -245,13 +245,13 @@ head(mycounts)
 Inspect upregulated genes
 
 ```{r}
-View( mycounts[up.ind,] )
+#View( mycounts[up.ind,] )
 ```
 
 Inspect downregulated genes
 
 ```{r}
-View( mycounts[down.ind,] )
+#View( mycounts[down.ind,] )
 ```
 
 
@@ -286,7 +286,7 @@ Get the results
 
 ```{r}
 res <- results(dds)
-as.data.frame(res)
+#as.data.frame(res)
 ```
 
 ```{r}
