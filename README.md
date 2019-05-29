@@ -2,7 +2,7 @@
 
 This is my coursework from [BGGN213 at UC San Diego](https://bioboot.github.io/bggn213_S19/) during Spring 2019.
 
-
+Note that not every class session has an associated R markdown document (depending on topic).
 
 
 
@@ -21,5 +21,9 @@ Class 11: Structural Bioinformatics (Part 1)
 Class 13: Genome Informatics (Part 1)
 
 Class14: Genome Informatics (Part 2)
+
+Class 15: Genome annotation and the interpretation of gene lists
+
+Class 17: Biological network analysis
 
 
