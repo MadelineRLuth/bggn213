@@ -20,7 +20,7 @@ Class 12: Structural Bioinformatics (Part 2)
 
 Class 13: Genome Informatics (Part 1)
 
-Class14: Genome Informatics (Part 2)
+Class 14: Genome Informatics (Part 2)
 
 Class 15: Genome annotation and the interpretation of gene lists
 
