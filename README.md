@@ -26,7 +26,7 @@ Class 15: [Genome annotation and the interpretation of gene lists](https://githu
 
 Class 16: Essential Unix for bioinformatics (no upload)
 
-Class 17: Biological network analysis
+Class 17: [Biological network analysis](https://github.com/MadelineRLuth/bggn213/blob/master/Class17/Class17.md)
 
 Class 18: Cancer genomics
 
