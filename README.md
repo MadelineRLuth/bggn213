@@ -16,7 +16,7 @@ Class 10: GitHub tutorial (no upload)
 
 Class 11: [Structural bioinformatics (Part 1)](https://github.com/MadelineRLuth/bggn213/blob/master/Class11/Class11.Rmd)
 
-Class 12: Structural bioinformatics (Part 2)
+Class 12: [Structural bioinformatics (Part 2)](https://github.com/bioboot/bimm143_classwork_S19/blob/master/class12/class12.Rmd) *Note: link to Prof. Barry Grant's markdown document for this session
 
 Class 13: [Genome informatics (Part 1)](https://github.com/MadelineRLuth/bggn213/blob/master/Class13/Class13.md)
 
@@ -28,6 +28,6 @@ Class 16: Essential Unix for bioinformatics (no upload)
 
 Class 17: [Biological network analysis](https://github.com/MadelineRLuth/bggn213/blob/master/Class17/Class17.md)
 
-Class 18: Cancer genomics
+Class 18: [Cancer genomics](https://github.com/bioboot/bimm143_classwork_S19/blob/master/class18/class18.Rmd) *Note: link to Prof. Barry Grant's markdown document for this session
 
 
