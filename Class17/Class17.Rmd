@@ -1,5 +1,5 @@
 ---
-title: "Class 16: Biological Network Analysis"
+title: "Class 17: Biological Network Analysis"
 output: github_document
 ---
 
