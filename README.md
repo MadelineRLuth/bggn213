@@ -8,19 +8,19 @@ Class 6: [Why, when and how of writing your own R functions](https://github.com/
 
 Class 7: [Bioinformatics R packages from CRAN and BioConductor](https://github.com/MadelineRLuth/bggn213/blob/master/Class07/Class07.md)
 
-Class 8: [Introduction to machine learning for Bioinformatics (Part 1)](https://github.com/MadelineRLuth/bggn213/blob/master/Class08/Class08.md)
+Class 8: [Introduction to machine learning for bioinformatics](https://github.com/MadelineRLuth/bggn213/blob/master/Class08/Class08.md)
 
 Class 9: [Unsupervised learning mini-project](https://github.com/MadelineRLuth/bggn213/blob/master/Class09/Class09_Unsupervised_learning.md)
 
-Class 10: GitHub Tutorial (no upload)
+Class 10: GitHub tutorial (no upload)
 
-Class 11: [Structural Bioinformatics (Part 1)](https://github.com/MadelineRLuth/bggn213/blob/master/Class11/Class11.Rmd)
+Class 11: [Structural bioinformatics (Part 1)](https://github.com/MadelineRLuth/bggn213/blob/master/Class11/Class11.Rmd)
 
-Class 12: Structural Bioinformatics (Part 2)
+Class 12: Structural bioinformatics (Part 2)
 
-Class 13: [Genome Informatics (Part 1)](https://github.com/MadelineRLuth/bggn213/blob/master/Class13/Class13.md)
+Class 13: [Genome informatics (Part 1)](https://github.com/MadelineRLuth/bggn213/blob/master/Class13/Class13.md)
 
-Class 14: [Genome Informatics (Part 2)](https://github.com/MadelineRLuth/bggn213/blob/master/Class14/Class14.md)
+Class 14: [Genome informatics (Part 2)](https://github.com/MadelineRLuth/bggn213/blob/master/Class14/Class14.md)
 
 Class 15: [Genome annotation and the interpretation of gene lists](https://github.com/MadelineRLuth/bggn213/blob/master/Class15/Class15.md)
 
