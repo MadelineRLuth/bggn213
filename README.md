@@ -6,6 +6,8 @@ This is my coursework from [BGGN213 at UC San Diego](https://bioboot.github.io/b
 
 Class 6: [Why, when and how of writing your own R functions](https://github.com/MadelineRLuth/bggn213/blob/master/Class06/Class06.md)
 
+** Check out the Class 6 homework assignment on writing functions [here](https://github.com/MadelineRLuth/bggn213/blob/master/Class06_Homework.html).** 
+
 Class 7: [Bioinformatics R packages from CRAN and BioConductor](https://github.com/MadelineRLuth/bggn213/blob/master/Class07/Class07.md)
 
 Class 8: [Introduction to machine learning for bioinformatics](https://github.com/MadelineRLuth/bggn213/blob/master/Class08/Class08.md)
