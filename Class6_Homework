@@ -1,0 +1,194 @@
+---
+title: 'BGGN213 Class 6 Homework: Writing a function to analyze protein-drug interactions'
+author: "Madeline R. Luth"
+date: "4/25/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Introduction
+
+The class was asked to improve the following analysis code (now commented out so it doesn't run):
+
+```{r}
+#library(bio3d)
+#s1 <- read.pdb("4AKE")  # kinase with drug
+#s2 <- read.pdb("1AKE")  # kinase no drug
+#s3 <- read.pdb("1E4Y")  # kinase with drug
+#s1.chainA <- trim.pdb(s1, chain="A", elety="CA")
+#s2.chainA <- trim.pdb(s2, chain="A", elety="CA")
+#s3.chainA <- trim.pdb(s3, chain="A", elety="CA")
+#s1.b <- s1.chainA$atom$b
+#s2.b <- s2.chainA$atom$b
+#s3.b <- s3.chainA$atom$b
+#plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+#plotb3(s2.b, sse=s2.chainA, typ="l", ylab="Bfactor")
+#plotb3(s3.b, sse=s3.chainA, typ="l", ylab="Bfactor")
+```
+
+**Instructions**: Write your own function starting from the code above that analyzes protein-drug interactions by reading in any protein PDB data and outputs a plot for the specified protein.
+
+**Rationale**: Any time you want to repeat the same type of coded analysis 3 or more times, it is considered best practice to write a function to perform the analysis rather than writing every step out with different parameters each time.
+
+```{r}
+#Before doing anything else, load the bio3d package (it has been installed previously)
+
+library(bio3d)
+```
+
+## What is the code above doing?
+
+1. read.pdb loads the PDB file that you want to work with. Use the four-letter PDB identifier and the package will find it in the database.
+
+2. trim.pdb takes a smaller subset of atoms from the whole PDB object. Select a single desired chain of the overall protein and create a new, smaller object from it. The additional arguments included above pass to the function atom.select; this is where "chain=" and "elety=" come from.
+
+3. Next the code takes the B-factor value for each residue in the chain and sets it as a new object. From https://proteinstructures.com/Structure/Structure/proteinstructure-databases2.html: "The B-factor describes the displacement of the atomic positions from an average (mean) value. For example, the more flexible an atom is the larger the displacement from the mean position will be (mean-squares displacement)." The code finds the B-factor value using $attribute notation, which is commonly used with lists in R. So from the PDB object, it looks first at each atom, then the "b" attribute of each atom which is the B-factor value.
+
+4. Lastly, the codes uses plotb3 to plot the B-factor values for each residue, providing the secondary structure in the marginal regions.
+
+## Creating working snippets of code
+
+Now that the general steps of the code have been outlined, I will attempt to get a general code to work in snippets using the first PDB file in the list, "4AKE".
+
+```{r}
+# Step 1: Read the PDB file and assign it to "pdb_raw"
+# I am also going to observe "pdb_raw" to make sure it looks correct
+# Info on total # atoms, # chains, the protein sequence, etc is returned
+
+pdb_raw <- read.pdb("4AKE")
+pdb_raw
+```
+```{r}
+# Step 2: Trim the PDB to include only the chain and other elements you want to work with and assign it to "pdb_trimmed"
+
+# We want chain A and only atoms affiliated with the alpha carbon, "CA"
+
+# We'll now see that # atoms has decreased to the # of alpha carbons (214), and there is only one chain instead of two (as expected)
+
+pdb_trimmed <- trim.pdb(pdb_raw, chain="A", elety="CA")
+
+pdb_trimmed
+
+```
+```{r}
+# Step 3: Pull out the B-factor values for each residue in the chain and assign the result to "b_factor"
+
+# We can observe the output to make sure it looks correct
+
+b_factor <- pdb_trimmed$atom$b
+b_factor
+```
+
+```{r}
+# Step 4: Plot the b-factor values for each residue as our final output
+
+plotb3(b_factor, sse=pdb_trimmed, typ="l", ylab="B-factor")
+```
+
+
+
+
+
+The generalized snippets work, so we can start thinking about combining them into a single function.
+
+
+
+## Building the final function
+
+
+
+**Documentation**
+
+
+The function will be named **plot_b_factors** and it will allow users to plot the B-factor values for specific chains/elements of their desired PDB protein file.
+
+
+
+Arguments will be the user inputs into the function. They will be as follows:
+
+
+
+
+  *filename*: the 4-letter identifier of the PDB file to be analyzed
+
+  *chain*: the chain of the protein that should be analyzed, i.e. A, B,   C, etc.
+
+  *elements*: the specific atoms in the protein that should be analyzed,   ie. "CA" (alpha carbon), "C" (beta carbon), "N" (nitrogen), etc.        Basically the same as "elety".
+
+Note: I entertained the idea of including the different attributes of the "atom" dataframe to be an additional argument for this function, but it appears that B-factor is the most informative variable (and one of the only numerical values) to plot. Therefore, this function will exist specifically to plot the B-factor for each residue.
+
+The final output of the plot_b_factors function will be a plot that contains the protein residue position on the x-axis and the B-factor value on the y-axis. Secondary structure elements (sse) will be plotted as rectangles in the margins of the plot.
+
+
+**Creation of the plot_B_factors function**
+```{r}
+#first line contains the name of the function and its arguments
+plot_B_factors <- function(filename, chain, elements) {
+  
+  # Step 1: read in the PDB
+  pdb_raw <- read.pdb(filename)
+  
+  # Step 2: trim the pdb to the specific chain(s) and element type(s)
+  pdb_trimmed <- trim.pdb(pdb_raw, chain = chain, elety= elements)
+  
+  # Step 3: create a vector of B-factor values from the trimmed PDB file
+  b_factor <- pdb_trimmed$atom$b
+  
+  # Step 4: plot the B-factor values at each selected residue
+  plotb3(b_factor, sse=pdb_trimmed, typ="l", ylab="B-factor")
+  
+}
+
+```
+
+## Testing the function
+
+**Try it on "4AKE"**
+
+```{r}
+plot_B_factors("4AKE", "A", "CA")
+```
+
+**Try it on "1AKE"**
+
+```{r}
+plot_B_factors("1AKE", "A", "CA")
+```
+
+**Try it on "1E4Y"**
+
+```{r}
+plot_B_factors("1E4Y", "A", "CA")
+```
+
+**Just for fun, a new PDB file: "4RA4" the Human Protein Kinase C Alpha**
+
+```{r}
+plot_B_factors("1E4Y", "A", "CA")
+```
+
+**What if I instead try to make a plot for chain B of "4AKE"?**
+
+```{r}
+plot_B_factors("4AKE", "B", "CA")
+```
+
+
+## It works :)
+
+
+
+
+
+
+
+
+
+
+
+
+
